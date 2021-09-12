@@ -1,0 +1,9 @@
+server:
+  port: 8099  # Spring boot Server port
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:13306/exercise?characterEncoding=utf8
+    username: root
+    password:
