@@ -1,5 +1,6 @@
 package com.example.exercise.user.dao;
 
+import com.example.exercise.user.domain.Level;
 import com.example.exercise.user.domain.User;
 import java.sql.SQLException;
 import org.springframework.context.ApplicationContext;
@@ -20,6 +21,9 @@ public class UserDaoTest {
     user.setId("brwnsugr");
     user.setName("developer");
     user.setPassword("married");
+    user.setLevel(Level.GOLD);
+    user.setRecommend(1);
+    user.setLogin(3);
 
     dao.add(user);
 

@@ -15,10 +15,10 @@ public class DaoFactory {
     return userDao;
   }
 
-  @Bean
-  public ConnectionMaker connectionMaker() {
-    return new DConnectionMaker();
-  }
+//  @Bean
+//  public ConnectionMaker connectionMaker() {
+//    return new DConnectionMaker();
+//  }
 
   @Bean
   public DataSource dataSource() {
