@@ -8,8 +8,10 @@ import com.example.exercise.ExerciseApplication;
 import com.example.exercise.user.dao.UserDao;
 import com.example.exercise.user.domain.Level;
 import com.example.exercise.user.domain.User;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import javax.sql.DataSource;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,9 @@ public class UserServiceTest {
 
   @Autowired
   UserDao userDao;
+
+  @Autowired
+  DataSource dataSource;
 
 
   List<User> users;
@@ -63,7 +68,7 @@ public class UserServiceTest {
   }
 
   @Test
-  public void upgradeLevels() {
+  public void upgradeLevels() throws SQLException {
     userDao.deleteAll();
 
     for(User user : users) userDao.add(user);
@@ -91,13 +96,14 @@ public class UserServiceTest {
   public void upgradeAllOrNothing() {
     UserService testUserService = new TestUserService(users.get(3).getId(), userDao);
     userDao.deleteAll();
+    testUserService.setDataSource(this.dataSource);
 
     for(User user : users) userDao.add(user);
 
     try{
       testUserService.upgradeLevels();
       fail("TestUserServiceException expected");
-    } catch(TestUserServiceException e) {
+    } catch(TestUserServiceException | SQLException e) {
     };
 
     checkLevelUpgraded(users.get(1), false);
