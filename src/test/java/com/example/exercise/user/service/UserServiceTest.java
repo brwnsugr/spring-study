@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.PlatformTransactionManager;
 
 @SpringBootTest(classes = ExerciseApplication.class)
 public class UserServiceTest {
@@ -29,6 +30,9 @@ public class UserServiceTest {
 
   @Autowired
   DataSource dataSource;
+
+  @Autowired
+  PlatformTransactionManager transactionManager;
 
 
   List<User> users;
@@ -94,7 +98,7 @@ public class UserServiceTest {
 
   @Test
   public void upgradeAllOrNothing() {
-    UserService testUserService = new TestUserService(users.get(3).getId(), userDao);
+    UserService testUserService = new TestUserService(users.get(3).getId(), userDao, transactionManager);
     userDao.deleteAll();
     testUserService.setDataSource(this.dataSource);
 

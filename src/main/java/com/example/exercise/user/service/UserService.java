@@ -11,6 +11,9 @@ import java.util.List;
 import javax.sql.DataSource;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
@@ -20,21 +23,22 @@ public class UserService {
 
   private final UserDao userDao;
   private final UserLevelUpgradePolicy userLevelUpgradePolicy;
+  private final PlatformTransactionManager transactionManager;
   private DataSource dataSource;
 
   public void setDataSource(DataSource dataSource) {
     this.dataSource = dataSource;
   }
 
-  public UserService(UserDao userDao) {
+  public UserService(UserDao userDao, PlatformTransactionManager transactionManager) {
     this.userDao = userDao;
     this.userLevelUpgradePolicy = new BasicUpgradePolicy(userDao);
+    this.transactionManager = transactionManager;
   }
 
   public void upgradeLevels() throws SQLException {
-    TransactionSynchronizationManager.initSynchronization(); // 트랜잭션 동기화 작업의 초기화
-    Connection c = DataSourceUtils.getConnection(dataSource); // 트랜잭션 동기화 저장소에 connection을 바인딩 해줌
-    c.setAutoCommit(false);
+    TransactionStatus status = this.transactionManager
+        .getTransaction(new DefaultTransactionDefinition());
 
     try{
       List<User> users = userDao.getAll();
@@ -43,14 +47,12 @@ public class UserService {
           upgradeLevel(user);
         }
       }
-      c.commit(); // 정상적으로 작업 마치면 커
+      this.transactionManager.commit(status); // 정상적으로 작업 마치면 커
     } catch(Exception e) {
-      c.rollback();
+      this.transactionManager.rollback(status);
       throw e;
     } finally {
-      DataSourceUtils.releaseConnection(c,dataSource); // 커넥션을 닫는다.
-      TransactionSynchronizationManager.unbindResource(this.dataSource); // connection 바인드 해제
-      TransactionSynchronizationManager.clearSynchronization();// 트랜잭션 동기화 저장소 종료
+
     }
   }
 
