@@ -2,6 +2,7 @@ package com.example.exercise.user.service;
 
 import com.example.exercise.user.dao.UserDao;
 import com.example.exercise.user.domain.User;
+import org.springframework.mail.MailSender;
 import org.springframework.transaction.PlatformTransactionManager;
 
 public class TestUserService extends UserService{
@@ -10,8 +11,8 @@ public class TestUserService extends UserService{
   private UserDao userDao;
 
 
-  public TestUserService(String id, UserDao userDao, PlatformTransactionManager transactionManager) {
-    super(userDao, transactionManager);
+  public TestUserService(String id, UserDao userDao, PlatformTransactionManager transactionManager, MailSender mailSender) {
+    super(userDao, transactionManager, mailSender);
     this.id = id;
   }
 

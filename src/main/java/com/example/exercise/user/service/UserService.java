@@ -5,16 +5,24 @@ import com.example.exercise.user.domain.Level;
 import com.example.exercise.user.domain.User;
 import com.example.exercise.user.policy.BasicUpgradePolicy;
 import com.example.exercise.user.policy.UserLevelUpgradePolicy;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.Properties;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.sql.DataSource;
-import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 public class UserService {
@@ -24,19 +32,25 @@ public class UserService {
   private final UserDao userDao;
   private final UserLevelUpgradePolicy userLevelUpgradePolicy;
   private final PlatformTransactionManager transactionManager;
+  private MailSender mailSender;
   private DataSource dataSource;
 
   public void setDataSource(DataSource dataSource) {
     this.dataSource = dataSource;
   }
 
-  public UserService(UserDao userDao, PlatformTransactionManager transactionManager) {
+  public UserService(UserDao userDao, PlatformTransactionManager transactionManager, MailSender mailSender) {
     this.userDao = userDao;
     this.userLevelUpgradePolicy = new BasicUpgradePolicy(userDao);
     this.transactionManager = transactionManager;
+    this.mailSender = mailSender;
   }
 
-  public void upgradeLevels() throws SQLException {
+  public void setMailSender(MailSender mailSender) {
+    this.mailSender = mailSender;
+  }
+
+  public void upgradeLevels() {
     TransactionStatus status = this.transactionManager
         .getTransaction(new DefaultTransactionDefinition());
 
@@ -59,6 +73,17 @@ public class UserService {
   protected void upgradeLevel(User user) {
     userLevelUpgradePolicy.upgradeLevel(user);
     userDao.update(user);
+    sendUpgradeEmail(user);
+  }
+
+  private void sendUpgradeEmail(User user) {
+    SimpleMailMessage mailMessage = new SimpleMailMessage();
+    mailMessage.setTo(user.getEmail());
+    mailMessage.setFrom("useradmin@ksug.com");
+    mailMessage.setSubject("Upgrade 안내");
+    mailMessage.setText("사용자님의 등급이 " + user.getLevel().name());
+
+    this.mailSender.send(mailMessage);
   }
 
   public void add(User user) {

@@ -9,6 +9,7 @@ import com.example.exercise.user.dao.UserDao;
 import com.example.exercise.user.domain.Level;
 import com.example.exercise.user.domain.User;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import javax.sql.DataSource;
@@ -17,6 +18,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mail.MailException;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.transaction.PlatformTransactionManager;
 
 @SpringBootTest(classes = ExerciseApplication.class)
@@ -33,6 +37,8 @@ public class UserServiceTest {
 
   @Autowired
   PlatformTransactionManager transactionManager;
+
+  @Autowired MailSender mailSender;
 
 
   List<User> users;
@@ -74,8 +80,10 @@ public class UserServiceTest {
   @Test
   public void upgradeLevels() throws SQLException {
     userDao.deleteAll();
-
     for(User user : users) userDao.add(user);
+
+    MockMailSender mockMailSender = new MockMailSender();
+    userService.setMailSender(mockMailSender);
 
     userService.upgradeLevels();
 
@@ -84,6 +92,11 @@ public class UserServiceTest {
     checkLevelUpgraded(users.get(2), false);
     checkLevelUpgraded(users.get(3), true);
     checkLevelUpgraded(users.get(4), false);
+
+    List<String> request = mockMailSender.getRequests();
+    Assertions.assertThat(request.size()).isEqualTo(2);
+    Assertions.assertThat(request.get(0)).isEqualTo(users.get(1).getEmail());
+    Assertions.assertThat(request.get(1)).isEqualTo(users.get(3).getEmail());
   }
 
   private void checkLevelUpgraded(User user, boolean upgraded) {
@@ -98,7 +111,7 @@ public class UserServiceTest {
 
   @Test
   public void upgradeAllOrNothing() {
-    UserService testUserService = new TestUserService(users.get(3).getId(), userDao, transactionManager);
+    UserService testUserService = new TestUserService(users.get(3).getId(), userDao, transactionManager, mailSender);
     userDao.deleteAll();
     testUserService.setDataSource(this.dataSource);
 
@@ -107,10 +120,28 @@ public class UserServiceTest {
     try{
       testUserService.upgradeLevels();
       fail("TestUserServiceException expected");
-    } catch(TestUserServiceException | SQLException e) {
+    } catch(TestUserServiceException e) {
     };
 
     checkLevelUpgraded(users.get(1), false);
+  }
+
+  static class MockMailSender implements MailSender {
+    private List<String> requests = new ArrayList<>();
+
+    public List<String> getRequests() {
+      return requests;
+    }
+
+    @Override
+    public void send(SimpleMailMessage mailMessage) throws MailException {
+      requests.add(mailMessage.getTo()[0]);
+    }
+
+    @Override
+    public void send(SimpleMailMessage... simpleMessages) throws MailException {
+
+    }
   }
 
 }

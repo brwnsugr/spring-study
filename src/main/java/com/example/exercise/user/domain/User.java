@@ -8,6 +8,11 @@ public class User {
   String id;
   String name;
   String password;
+  String email;
+
+  public void setEmail(String email){this.email = email;}
+
+  public String getEmail() {return email;}
 
   public void setLevel(Level level) {
     this.level = level;
