@@ -7,7 +7,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 public class UserServiceTx implements UserService{
 
-  UserService userService;
+  UserService userService; // 타깃 오브젝트
   PlatformTransactionManager transactionManager;
 
   public void setUserService(UserService userService) {
@@ -20,7 +20,7 @@ public class UserServiceTx implements UserService{
 
   @Override
   public void add(User user) {
-    userService.add(user);
+    userService.add(user); // 메소드 구현과 userService 로의 메소드 위임
   }
 
   @Override
