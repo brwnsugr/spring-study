@@ -5,7 +5,7 @@ import com.example.exercise.user.domain.User;
 import org.springframework.mail.MailSender;
 import org.springframework.transaction.PlatformTransactionManager;
 
-public class TestUserService extends UserService{
+public class TestUserService extends UserServiceImpl {
 
   private String id;
   private UserDao userDao;

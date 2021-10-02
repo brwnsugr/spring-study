@@ -1,10 +1,9 @@
 package com.example.exercise.user.policy;
 
-import static com.example.exercise.user.service.UserService.MIN_LOGCOUNT_FOR_SILVER;
-import static com.example.exercise.user.service.UserService.MIN_RECOMMEND_FOR_GOLD;
+import static com.example.exercise.user.service.UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER;
+import static com.example.exercise.user.service.UserServiceImpl.MIN_RECOMMEND_FOR_GOLD;
 
 import com.example.exercise.user.dao.UserDao;
-import com.example.exercise.user.domain.Level;
 import com.example.exercise.user.domain.User;
 
 public class BasicUpgradePolicy implements UserLevelUpgradePolicy {
