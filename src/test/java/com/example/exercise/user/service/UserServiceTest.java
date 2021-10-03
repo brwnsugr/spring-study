@@ -5,9 +5,11 @@ import static com.example.exercise.user.service.UserServiceImpl.MIN_RECOMMEND_FO
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.example.exercise.ExerciseApplication;
+import com.example.exercise.proxy.TransactionHandler;
 import com.example.exercise.user.dao.UserDao;
 import com.example.exercise.user.domain.Level;
 import com.example.exercise.user.domain.User;
+import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,9 +122,15 @@ public class UserServiceTest {
     userDao.deleteAll();
     testUserService.setDataSource(this.dataSource);
 
-    UserServiceTx txUserService = new UserServiceTx();
-    txUserService.setTransactionManager(transactionManager);
-    txUserService.setUserService(testUserService);
+    TransactionHandler txHandler = new TransactionHandler();
+
+    txHandler.setTarget(testUserService);
+    txHandler.setTransactionManager(transactionManager);
+    txHandler.setPattern("upgradeLevels");
+    //UserService 타입의 다이내믹 프록시 생성
+    UserService txUserService = (UserService) Proxy.newProxyInstance(
+        getClass().getClassLoader(), new Class[]{UserService.class}, txHandler
+    );
 
     for(User user : users) userDao.add(user);
 
